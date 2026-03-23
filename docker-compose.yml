@@ -1,0 +1,56 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: skillswap
+      POSTGRES_PASSWORD: skillswap
+      POSTGRES_DB: skillswap
+    ports:
+      - "5432:5432"
+    volumes:
+      - skillswap_pg_v4:/var/lib/postgresql/data
+      - ./database/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U skillswap -d skillswap"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+
+  server:
+    build: ./server
+    command: sh -c "npm install && npm run dev"
+    environment:
+      DATABASE_URL: postgresql://skillswap:skillswap@postgres:5432/skillswap
+      PORT: "3001"
+      UF_DEFAULT_TERM: "2261"
+      UF_SOC_CATEGORY: "CWSP"
+    volumes:
+      - ./server:/app
+      - server_node_modules:/app/node_modules
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  client:
+    build: ./client
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0 --port 5173"
+    environment:
+      VITE_ENV_ROOT: /app
+      API_PROXY_TARGET: http://server:3001
+      VITE_UF_DEFAULT_TERM: "2261"
+      CHOKIDAR_USEPOLLING: "true"
+      CHOKIDAR_INTERVAL: "200"
+    volumes:
+      - ./client:/app
+      - client_node_modules:/app/node_modules
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+
+volumes:
+  skillswap_pg_v4:
+  server_node_modules:
+  client_node_modules:
