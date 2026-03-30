@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import {
   BrowserRouter,
   Navigate,
@@ -12,6 +12,7 @@ import DashboardPage from './pages/DashboardPage.jsx';
 import SkillSwapPage from './pages/SkillSwapPage.jsx';
 
 const STORAGE_KEY = 'skillswap.current_user';
+const DARK_KEY = 'skillswap.dark_mode';
 
 function readStoredUser() {
   try {
@@ -29,6 +30,20 @@ function ProtectedRoute({ currentUser, children }) {
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(() => readStoredUser());
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem(DARK_KEY) === 'true');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+  }, [darkMode]);
+
+  const toggleDark = () => {
+    setDarkMode(prev => {
+      const next = !prev;
+      localStorage.setItem(DARK_KEY, String(next));
+      return next;
+    });
+  };
+
   const defaultTerm = useMemo(() => {
     const v = import.meta.env.VITE_UF_DEFAULT_TERM;
     return typeof v === 'string' && v.trim() ? v.trim() : '2261';
@@ -47,7 +62,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <div className="min-vh-100 d-flex flex-column">
-        <Navbar currentUser={currentUser} onLogout={clearUser} />
+        <Navbar currentUser={currentUser} onLogout={clearUser} darkMode={darkMode} onToggleDark={toggleDark} />
         <main className="container py-3 flex-grow-1">
           <Routes>
             <Route
@@ -74,7 +89,7 @@ export default function App() {
               path="/dashboard"
               element={(
                 <ProtectedRoute currentUser={currentUser}>
-                  <DashboardPage currentUser={currentUser} />
+                  <DashboardPage currentUser={currentUser} defaultTerm={defaultTerm} />
                 </ProtectedRoute>
               )}
             />

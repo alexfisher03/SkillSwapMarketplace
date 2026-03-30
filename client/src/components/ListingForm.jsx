@@ -1,18 +1,30 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { createListing } from '../api/listings.js';
+import { createListing, updateListing } from '../api/listings.js';
 import { searchCourses } from '../api/uf.js';
 
 const DEBOUNCE_MS = 350;
 
-export default function ListingForm({ currentUser, defaultTerm, initialListingType, onCreated }) {
-  const [listingType, setListingType] = useState(initialListingType || 'offer');
-  const [category, setCategory] = useState('misc');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [courseQuery, setCourseQuery] = useState('');
+export default function ListingForm({ currentUser, defaultTerm, onCreated, onUpdated, initialListing }) {
+  const isEdit = Boolean(initialListing);
+
+  const [listingType, setListingType] = useState(initialListing?.listing_type || 'offer');
+  const [category, setCategory] = useState(initialListing?.category || 'misc');
+  const [title, setTitle] = useState(initialListing?.title || '');
+  const [description, setDescription] = useState(initialListing?.description || '');
+  const [courseQuery, setCourseQuery] = useState(initialListing?.course_code || '');
   const [courseResults, setCourseResults] = useState([]);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedCourse, setSelectedCourse] = useState(
+    initialListing?.course_code ? { code: initialListing.course_code, title: initialListing.uf_course_title || '' } : null
+  );
+  const [selectedSection, setSelectedSection] = useState(
+    initialListing?.section_number ? {
+      sectionNumber: initialListing.section_number,
+      classNumber: initialListing.section_class_number,
+      instructor: initialListing.section_instructor,
+      meeting: initialListing.section_meeting,
+      campus: initialListing.section_campus,
+    } : null
+  );
   const [courseError, setCourseError] = useState('');
   const [submitError, setSubmitError] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -23,7 +35,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
   useEffect(() => {
     if (category !== 'course') {
       setCourseResults([]);
-      setCourseQuery('');
+      if (!isEdit) setCourseQuery('');
       setSelectedCourse(null);
       setSelectedSection(null);
       setCourseError('');
@@ -50,13 +62,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [category, courseQuery, resolvedTerm]);
-
-  useEffect(() => {
-    if (initialListingType) {
-      setListingType(initialListingType);
-    }
-  }, [initialListingType]);
+  }, [category, courseQuery, resolvedTerm, isEdit]);
 
   const submit = (e) => {
     e.preventDefault();
@@ -77,6 +83,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
       title,
       description,
     };
+
     if (category === 'course') {
       payload.term_code = resolvedTerm;
       payload.course_code = selectedCourse.code;
@@ -89,15 +96,24 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
     }
 
     setSubmitting(true);
-    createListing(payload, currentUser.token)
+
+    const request = isEdit
+      ? updateListing(initialListing.listing_id, payload, currentUser.token)
+      : createListing(payload, currentUser.token);
+
+    request
       .then(() => {
-        setTitle('');
-        setDescription('');
-        setCourseQuery('');
-        setCourseResults([]);
-        setSelectedCourse(null);
-        setSelectedSection(null);
-        if (onCreated) onCreated();
+        if (isEdit) {
+          if (onUpdated) onUpdated();
+        } else {
+          setTitle('');
+          setDescription('');
+          setCourseQuery('');
+          setCourseResults([]);
+          setSelectedCourse(null);
+          setSelectedSection(null);
+          if (onCreated) onCreated();
+        }
       })
       .catch((e) => {
         setSubmitError(e instanceof Error ? e.message : String(e));
@@ -107,8 +123,8 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
 
   return (
     <section className="mb-5">
-      <h2 className="h5 mb-3">Create listing</h2>
-      <form className="card card-form shadow-sm" onSubmit={submit}>
+      <h2 className="h5 mb-3">{isEdit ? 'Edit listing' : 'Create listing'}</h2>
+      <form className="card shadow-sm" onSubmit={submit}>
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
@@ -129,6 +145,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
                 className="form-select"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
+                disabled={isEdit}
               >
                 <option value="misc">Misc</option>
                 <option value="course">Course</option>
@@ -194,9 +211,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
                                   <button
                                     key={`${c.code}-${s.classNumber}-${s.sectionNumber}`}
                                     type="button"
-                                    className={`btn text-start ${
-                                      selected ? 'btn-primary' : 'btn-outline-secondary'
-                                    }`}
+                                    className={`btn text-start ${selected ? 'btn-primary' : 'btn-outline-secondary'}`}
                                     onClick={() => {
                                       setSelectedCourse(c);
                                       setSelectedSection(s);
@@ -231,9 +246,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
                     </p>
                     <p className="small mb-0">
                       Selected section: {selectedSection.sectionNumber || 'N/A'}
-                      {selectedSection.classNumber
-                        ? ` (Class ${selectedSection.classNumber})`
-                        : ''}
+                      {selectedSection.classNumber ? ` (Class ${selectedSection.classNumber})` : ''}
                     </p>
                     <button
                       type="button"
@@ -258,7 +271,7 @@ export default function ListingForm({ currentUser, defaultTerm, initialListingTy
           </div>
           {submitError ? <p className="small text-danger mt-3 mb-0">{submitError}</p> : null}
           <button type="submit" className="btn btn-primary mt-3" disabled={submitting}>
-            {submitting ? 'Saving...' : 'Post listing'}
+            {submitting ? 'Saving...' : isEdit ? 'Save changes' : 'Post listing'}
           </button>
         </div>
       </form>

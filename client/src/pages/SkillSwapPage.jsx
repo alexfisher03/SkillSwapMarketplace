@@ -12,6 +12,8 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [initialListingType, setInitialListingType] = useState('offer');
+  const [editingListing, setEditingListing] = useState(null);
+
 
   const load = useCallback(() => {
     setError('');
@@ -39,6 +41,12 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
     closeCreateModal();
   };
 
+  const handleStatusChange = (listingId, newStatus) => {
+    setRows(prev => prev.map(r =>
+      r.listing_id === listingId ? { ...r, status: newStatus } : r
+    ));
+  };
+
   const filteredRows = useMemo(() => {
     if (!Array.isArray(rows)) return rows;
     const query = searchQuery.trim().toLowerCase();
@@ -56,6 +64,13 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
         .some((value) => value.toLowerCase().includes(query));
     });
   }, [rows, categoryFilter, typeFilter, searchQuery]);
+
+  const handleEdit = (listing) => setEditingListing(listing);
+  const closeEditModal = () => setEditingListing(null);
+  const handleUpdated = () => {
+    load();
+    closeEditModal();
+  };
 
   return (
     <div className="mt-4">
@@ -89,6 +104,17 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
           initialListingType={initialListingType}
           onCreated={handleCreated}
         />
+      </Modal>
+
+      <Modal title="Edit listing" visible={Boolean(editingListing)} onClose={closeEditModal}>
+        {editingListing && (
+        <ListingForm
+          currentUser={currentUser}
+          defaultTerm={defaultTerm}
+          initialListing={editingListing}
+          onUpdated={handleUpdated}
+        />
+        )}
       </Modal>
 
       {error ? <div className="alert alert-danger py-2">{error}</div> : null}
@@ -156,9 +182,9 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
             <div className="row g-3">
               {filteredRows.map((row) => (
                 <div key={row.listing_id} className="col-12 col-md-6">
-                  <ListingCard listing={row} />
+                  <ListingCard listing={row} currentUser={currentUser} onStatusChange={handleStatusChange} onEdit={handleEdit}/>
                 </div>
-              ))}
+            ))}
             </div>
           )}
         </>

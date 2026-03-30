@@ -4,13 +4,17 @@
   --bg-panel: #ffffff;
   --border: #dde3ed;
   --text-muted: #5b6a82;
-  --accent: #2c7be5;
-  --accent-soft: rgba(44, 123, 229, 0.08);
+  --accent: #fa4616;
+  --accent-soft: rgba(250, 70, 22, 0.08);
 }
 
 body {
   background-color: var(--bg-page);
   min-height: 100vh;
+}
+
+.navbar {
+  background-color: #0021a5 !important;
 }
 
 .navbar-brand {
@@ -118,4 +122,104 @@ body {
   .navbar .d-flex {
     flex-wrap: wrap;
   }
+}
+
+.btn-primary {
+  background-color: #fa4616 !important;
+  border-color: #fa4616 !important;
+}
+
+.btn-primary:hover {
+  background-color: #d93a10 !important;
+  border-color: #d93a10 !important;
+}
+
+[data-theme="dark"] {
+  --bg-page: #0f1117;
+  --bg-panel: #1a1d27;
+  --border: #2e3347;
+  --text-muted: #8b95a9;
+  --accent: #4d94ff;
+  --accent-soft: rgba(77, 148, 255, 0.1);
+}
+
+[data-theme="dark"] .navbar {
+  background-color: #001580 !important;
+}
+
+[data-theme="dark"].min-vh-100,
+[data-theme="dark"] {
+  background-color: var(--bg-page);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .card,
+[data-theme="dark"] .custom-modal-dialog {
+  background-color: var(--bg-panel);
+  border-color: var(--border);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+  background-color: #252836;
+  border-color: var(--border);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .page-hero {
+  background: linear-gradient(135deg, rgba(77, 148, 255, 0.08), rgba(26, 29, 39, 0.6));
+  border-color: rgba(77, 148, 255, 0.2);
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .page-hero p {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .listing-badge-offer {
+  background-color: #0f2744;
+  color: #6cb4ff;
+}
+
+[data-theme="dark"] .listing-badge-request {
+  background-color: #2d1a00;
+  color: #ffaa55;
+}
+
+[data-theme="dark"] .listing-badge-exchange {
+  background-color: #0d2e10;
+  color: #6dd16e;
+}
+
+[data-theme="dark"] .badge-category-course {
+  background-color: #1a1a3e;
+  color: #9d96ff;
+}
+
+[data-theme="dark"] .badge-category-misc {
+  background-color: #252836;
+  color: #aaa;
+}
+
+[data-theme="dark"] .alert-secondary {
+  background-color: #252836;
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .small-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] h2 {
+  color: #e2e8f0;
 }

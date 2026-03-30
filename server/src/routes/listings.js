@@ -27,12 +27,16 @@ router.get('/listings', async (req, res) => {
         l.section_meeting,
         l.section_campus,
         l.created_at,
+        l.status,
+        COUNT(li.interest_id) AS interest_count,
         u.display_name AS creator_display_name,
         cc.course_title AS uf_course_title
       FROM listings l
       INNER JOIN users u ON u.user_id = l.user_id
       LEFT JOIN course_cache cc ON cc.cache_id = l.course_cache_id
+      LEFT JOIN listing_interests li ON li.listing_id = l.listing_id
       WHERE ($1::boolean = false OR l.user_id = $2)
+      GROUP BY l.listing_id, u.display_name, cc.course_title
       ORDER BY l.created_at DESC`,
       [hasUserFilter, boundUserId]
     );
@@ -162,6 +166,111 @@ router.post('/listings', authenticate, async (req, res) => {
     });
   } finally {
     client.release();
+  }
+});
+
+router.patch('/listings/:id/status', authenticate, async (req, res) => {
+  const listingId = Number(req.params.id);
+  const userId = Number(req.user && req.user.user_id);
+  const { status } = req.body || {};
+
+  if (!['open', 'closed'].includes(status)) {
+    return res.status(400).json({ error: 'invalid_status' });
+  }
+
+  try {
+    const result = await pool.query(
+      `UPDATE listings SET status = $1
+       WHERE listing_id = $2 AND user_id = $3
+       RETURNING listing_id`,
+      [status, listingId, userId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'not_found_or_unauthorized' });
+    }
+    res.json({ listing_id: listingId, status });
+  } catch (err) {
+    res.status(500).json({ error: 'database_error', detail: err.message });
+  }
+});
+
+router.post('/listings/:id/interest', authenticate, async (req, res) => {
+  const listingId = Number(req.params.id);
+  const userId = Number(req.user && req.user.user_id);
+
+  try {
+    const listingResult = await pool.query(
+      `SELECT l.listing_id, l.user_id, l.status, u.email AS poster_email
+       FROM listings l
+       INNER JOIN users u ON u.user_id = l.user_id
+       WHERE l.listing_id = $1`,
+      [listingId]
+    );
+    if (listingResult.rowCount === 0) {
+      return res.status(404).json({ error: 'not_found' });
+    }
+    const listing = listingResult.rows[0];
+    if (listing.status === 'closed') {
+      return res.status(400).json({ error: 'listing_closed' });
+    }
+    if (listing.user_id === userId) {
+      return res.status(400).json({ error: 'cannot_interest_own_listing' });
+    }
+
+    await pool.query(
+      `INSERT INTO listing_interests (listing_id, user_id)
+       VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+      [listingId, userId]
+    );
+
+    res.json({ poster_email: listing.poster_email });
+  } catch (err) {
+    res.status(500).json({ error: 'database_error', detail: err.message });
+  }
+});
+
+router.patch('/listings/:id', authenticate, async (req, res) => {
+  const listingId = Number(req.params.id);
+  const userId = Number(req.user && req.user.user_id);
+  const body = req.body || {};
+
+  const listingType = typeof body.listing_type === 'string' ? body.listing_type.trim() : null;
+  const title = typeof body.title === 'string' ? body.title.trim() : null;
+  const description = typeof body.description === 'string' ? body.description.trim() : '';
+
+  if (!title) return res.status(400).json({ error: 'missing_fields' });
+
+  try {
+    const result = await pool.query(
+      `UPDATE listings SET
+        listing_type = COALESCE($1, listing_type),
+        title = $2,
+        description = $3
+       WHERE listing_id = $4 AND user_id = $5
+       RETURNING listing_id`,
+      [listingType, title, description || null, listingId, userId]
+    );
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'not_found_or_unauthorized' });
+    }
+    res.json({ listing_id: listingId });
+  } catch (err) {
+    res.status(500).json({ error: 'database_error', detail: err.message });
+  }
+});
+
+router.delete('/listings/:id/interest', authenticate, async (req, res) => {
+  const listingId = Number(req.params.id);
+  const userId = Number(req.user && req.user.user_id);
+
+  try {
+    await pool.query(
+      `DELETE FROM listing_interests WHERE listing_id = $1 AND user_id = $2`,
+      [listingId, userId]
+    );
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'database_error', detail: err.message });
   }
 });
 
