@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 
-export default function Navbar({ currentUser, onLogout }) {
+export default function Navbar({ currentUser, onLogout, darkMode, onToggleDark }) {
   const navigate = useNavigate();
 
   return (
@@ -9,6 +9,14 @@ export default function Navbar({ currentUser, onLogout }) {
         <Link className="navbar-brand" to={currentUser ? '/skill-swap' : '/login'}>
           Skill Swap Marketplace
         </Link>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-light"
+          onClick={onToggleDark}
+          title="Toggle dark mode"
+        >
+          {darkMode ? '☀️' : '🌙'}
+      </button>
         <div className="d-flex align-items-center gap-3 ms-auto">
           {currentUser ? (
             <>

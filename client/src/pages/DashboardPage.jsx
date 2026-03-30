@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import ListingCard from '../components/ListingCard.jsx';
+import ListingForm from '../components/ListingForm.jsx';
+import Modal from '../components/Modal.jsx';
 import { getListings } from '../api/listings.js';
 
-export default function DashboardPage({ currentUser }) {
+export default function DashboardPage({ currentUser, defaultTerm }) {
   const [rows, setRows] = useState(null);
   const [error, setError] = useState('');
+  const [editingListing, setEditingListing] = useState(null);
 
   useEffect(() => {
     if (!currentUser?.user_id) return;
@@ -12,6 +15,17 @@ export default function DashboardPage({ currentUser }) {
       .then(setRows)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, [currentUser]);
+
+  const handleStatusChange = (listingId, newStatus) => {
+    setRows(prev => prev.map(r => r.listing_id === listingId ? { ...r, status: newStatus } : r));
+  };
+
+  const handleEdit = (listing) => setEditingListing(listing);
+  const closeEditModal = () => setEditingListing(null);
+  const handleUpdated = () => {
+    setEditingListing(null);
+    getListings({ user_id: currentUser.user_id }).then(setRows);
+  };
 
   return (
     <div className="mt-4">
@@ -21,12 +35,25 @@ export default function DashboardPage({ currentUser }) {
           Signed in as {currentUser.display_name} ({currentUser.email}).
         </p>
       </div>
+
+      <Modal title="Edit listing" visible={Boolean(editingListing)} onClose={closeEditModal}>
+        {editingListing && (
+          <ListingForm
+            currentUser={currentUser}
+            defaultTerm={defaultTerm}
+            initialListing={editingListing}
+            onUpdated={handleUpdated}
+          />
+        )}
+      </Modal>
+
       <div className="mb-4 d-flex justify-content-between align-items-center">
         <h2 className="h6 mb-0">Your listings</h2>
         {Array.isArray(rows) && rows.length > 0 ? (
           <span className="small text-muted">{rows.length} created</span>
         ) : null}
       </div>
+
       {error ? <div className="alert alert-danger py-2">{error}</div> : null}
       {rows === null ? <p className="text-muted small">Loading your listings...</p> : null}
       {Array.isArray(rows) && rows.length === 0 ? (
@@ -38,7 +65,13 @@ export default function DashboardPage({ currentUser }) {
         <div className="row g-3">
           {rows.map((row) => (
             <div key={row.listing_id} className="col-12 col-md-6">
-              <ListingCard listing={row} />
+              <ListingCard
+                listing={row}
+                currentUser={currentUser}
+                onStatusChange={handleStatusChange}
+                onEdit={handleEdit}
+                showInterestCount
+              />
             </div>
           ))}
         </div>
