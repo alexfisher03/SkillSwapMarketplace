@@ -1,5 +1,6 @@
 const express = require('express');
 const { pool } = require('../db/pool');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -44,9 +45,9 @@ router.get('/listings', async (req, res) => {
   }
 });
 
-router.post('/listings', async (req, res) => {
+router.post('/listings', authenticate, async (req, res) => {
   const body = req.body || {};
-  const userId = Number(body.user_id);
+  const userId = Number(req.user && req.user.user_id);
   const listingType = typeof body.listing_type === 'string' ? body.listing_type.trim() : '';
   const category = typeof body.category === 'string' ? body.category.trim() : '';
   const title = typeof body.title === 'string' ? body.title.trim() : '';
@@ -67,7 +68,7 @@ router.post('/listings', async (req, res) => {
     typeof body.section_campus === 'string' ? body.section_campus.trim() : '';
 
   if (!userId || Number.isNaN(userId)) {
-    res.status(400).json({ error: 'invalid_user_id' });
+    res.status(401).json({ error: 'unauthorized' });
     return;
   }
   if (!listingType || !title) {

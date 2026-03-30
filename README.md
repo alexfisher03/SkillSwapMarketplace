@@ -29,6 +29,7 @@ If you need a fresh database:
 
 - `DATABASE_URL` - Postgres connection string
 - `PORT` - backend port
+- `JWT_SECRET` - secret key used to sign authentication tokens
 - `VITE_API_BASE_URL` - optional absolute API base URL (leave empty to use `/api` proxy)
 - `VITE_UF_DEFAULT_TERM` - default term used in the frontend listing form
 - `UF_DEFAULT_TERM` - backend default term for UF course search

@@ -15,15 +15,24 @@ export default function DashboardPage({ currentUser }) {
 
   return (
     <div className="mt-4">
-      <h1 className="h4 mb-2">Dashboard</h1>
-      <p className="text-muted small mb-4">
-        Signed in as {currentUser.display_name} ({currentUser.email})
-      </p>
-      <h2 className="h6 mb-3">Your listings</h2>
-      {error ? <p className="text-danger small">{error}</p> : null}
-      {rows === null ? <p className="text-muted small">Loading...</p> : null}
+      <div className="page-hero rounded-4 p-4 mb-4">
+        <h1 className="h4 mb-2">Dashboard</h1>
+        <p className="mb-0 text-muted">
+          Signed in as {currentUser.display_name} ({currentUser.email}).
+        </p>
+      </div>
+      <div className="mb-4 d-flex justify-content-between align-items-center">
+        <h2 className="h6 mb-0">Your listings</h2>
+        {Array.isArray(rows) && rows.length > 0 ? (
+          <span className="small text-muted">{rows.length} created</span>
+        ) : null}
+      </div>
+      {error ? <div className="alert alert-danger py-2">{error}</div> : null}
+      {rows === null ? <p className="text-muted small">Loading your listings...</p> : null}
       {Array.isArray(rows) && rows.length === 0 ? (
-        <p className="text-muted small">You have not created any listings yet.</p>
+        <div className="alert alert-secondary py-3">
+          You have not created any listings yet. Head to Skill Swap to post your first offer or request.
+        </div>
       ) : null}
       {Array.isArray(rows) && rows.length > 0 ? (
         <div className="row g-3">

@@ -12,10 +12,20 @@ export default function Navbar({ currentUser, onLogout }) {
         <div className="d-flex align-items-center gap-3 ms-auto">
           {currentUser ? (
             <>
-              <NavLink className="text-white text-decoration-none" to="/skill-swap">
+              <NavLink
+                className={({ isActive }) =>
+                  `text-white text-decoration-none ${isActive ? 'fw-bold' : ''}`
+                }
+                to="/skill-swap"
+              >
                 Skill Swap
               </NavLink>
-              <NavLink className="text-white text-decoration-none" to="/dashboard">
+              <NavLink
+                className={({ isActive }) =>
+                  `text-white text-decoration-none ${isActive ? 'fw-bold' : ''}`
+                }
+                to="/dashboard"
+              >
                 Dashboard
               </NavLink>
               <span className="text-white-50 small">{currentUser.display_name}</span>
