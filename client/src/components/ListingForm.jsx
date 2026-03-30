@@ -4,8 +4,8 @@ import { searchCourses } from '../api/uf.js';
 
 const DEBOUNCE_MS = 350;
 
-export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
-  const [listingType, setListingType] = useState('offer');
+export default function ListingForm({ currentUser, defaultTerm, initialListingType, onCreated }) {
+  const [listingType, setListingType] = useState(initialListingType || 'offer');
   const [category, setCategory] = useState('misc');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -52,6 +52,12 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
     };
   }, [category, courseQuery, resolvedTerm]);
 
+  useEffect(() => {
+    if (initialListingType) {
+      setListingType(initialListingType);
+    }
+  }, [initialListingType]);
+
   const submit = (e) => {
     e.preventDefault();
     setSubmitError('');
@@ -83,7 +89,7 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
     }
 
     setSubmitting(true);
-    createListing(payload)
+    createListing(payload, currentUser.token)
       .then(() => {
         setTitle('');
         setDescription('');
@@ -102,7 +108,7 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
   return (
     <section className="mb-5">
       <h2 className="h5 mb-3">Create listing</h2>
-      <form className="card shadow-sm" onSubmit={submit}>
+      <form className="card card-form shadow-sm" onSubmit={submit}>
         <div className="card-body">
           <div className="row g-3">
             <div className="col-md-4">
@@ -112,9 +118,9 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
                 value={listingType}
                 onChange={(e) => setListingType(e.target.value)}
               >
-                <option value="offer">offer</option>
-                <option value="request">request</option>
-                <option value="exchange">exchange</option>
+                <option value="offer">Offer</option>
+                <option value="request">Request</option>
+                <option value="exchange">Exchange</option>
               </select>
             </div>
             <div className="col-md-4">
@@ -124,8 +130,8 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated }) {
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="misc">misc</option>
-                <option value="course">course</option>
+                <option value="misc">Misc</option>
+                <option value="course">Course</option>
               </select>
             </div>
             <div className="col-md-4">

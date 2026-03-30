@@ -13,7 +13,7 @@ export default function SignupPage({ onSignup }) {
     setSubmitting(true);
     signup(payload)
       .then((data) => {
-        onSignup(data.user);
+        onSignup({ ...data.user, token: data.token });
         navigate('/skill-swap');
       })
       .catch((e) => setError(e instanceof Error ? e.message : String(e)))

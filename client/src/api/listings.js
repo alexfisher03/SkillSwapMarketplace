@@ -8,10 +8,13 @@ export function getListings(params = {}) {
   return requestJson(target);
 }
 
-export function createListing(payload) {
+export function createListing(payload, token) {
   return requestJson(apiUrl('/api/listings'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     body: JSON.stringify(payload),
   });
 }

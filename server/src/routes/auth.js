@@ -1,6 +1,8 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const { pool } = require('../db/pool');
+const { signToken } = require('../utils/jwt');
+const { authenticate } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -31,7 +33,13 @@ router.post('/signup', async (req, res) => {
        RETURNING user_id, email, display_name, created_at`,
       [email, passwordHash, displayName]
     );
-    res.status(201).json({ user: result.rows[0] });
+    const user = result.rows[0];
+    const token = signToken({
+      user_id: user.user_id,
+      email: user.email,
+      display_name: user.display_name,
+    });
+    res.status(201).json({ user, token });
   } catch (err) {
     if (err && err.code === '23505') {
       res.status(409).json({ error: 'email_already_exists' });
@@ -71,19 +79,23 @@ router.post('/login', async (req, res) => {
       res.status(401).json({ error: 'invalid_credentials' });
       return;
     }
-    res.json({
-      user: {
-        user_id: user.user_id,
-        email: user.email,
-        display_name: user.display_name,
-      },
-    });
+    const userPayload = {
+      user_id: user.user_id,
+      email: user.email,
+      display_name: user.display_name,
+    };
+    const token = signToken(userPayload);
+    res.json({ user: userPayload, token });
   } catch (err) {
     res.status(500).json({
       error: 'database_error',
       detail: err && err.message ? err.message : String(err),
     });
   }
+});
+
+router.get('/me', authenticate, (req, res) => {
+  res.json({ user: req.user });
 });
 
 module.exports = router;
