@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { setListingStatus, expressInterest, removeInterest } from '../api/listings.js';
+import { Link } from 'react-router-dom';
 
 export default function ListingCard({ listing, currentUser, onStatusChange, onEdit, showInterestCount }) {
   const [revealedEmail, setRevealedEmail] = useState(null);
@@ -61,7 +62,9 @@ export default function ListingCard({ listing, currentUser, onStatusChange, onEd
         <div className="d-flex justify-content-between align-items-start gap-2">
           <div>
             <h3 className="h6 card-title mb-1">{listing.title}</h3>
-            <p className="small text-muted mb-0">Posted by {listing.creator_display_name}</p>
+            <p className="small text-muted mb-0">
+            Posted by <Link to={`/user/${listing.user_id}`}>{listing.creator_display_name}</Link>
+            </p>
           </div>
           <div className="d-flex flex-column align-items-end gap-1">
             <span className={`badge ${typeClass} text-uppercase small py-2 px-3`}>

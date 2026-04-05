@@ -10,7 +10,8 @@ export default function UserProfile() {
   // Suggested skills for the combobox dropdown
   const suggestedSkills = [
     "JavaScript", "Python", "React", "Calculus", 
-    "Resume Review", "Graphic Design", "Data Structures"
+    "Resume Review", "Graphic Design", "Data Structures",
+    "Public Speaking", "Git"
   ];
 
   useEffect(() => {

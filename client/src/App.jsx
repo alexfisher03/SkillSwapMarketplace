@@ -10,6 +10,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import SkillSwapPage from './pages/SkillSwapPage.jsx';
+import UserProfile from './components/UserProfile.jsx';
 
 const STORAGE_KEY = 'skillswap.current_user';
 const DARK_KEY = 'skillswap.dark_mode';
@@ -102,9 +103,23 @@ export default function App() {
               )}
             />
             <Route
+              path="/user/:userId"
+              element={(
+                <ProtectedRoute currentUser={currentUser}>
+                  <UserProfile />
+                </ProtectedRoute>
+              )}
+            />
+            
+            <Route
               path="*"
               element={<Navigate to={currentUser ? '/skill-swap' : '/login'} replace />}
             />
+            <Route
+              path="*"
+              element={<Navigate to={currentUser ? '/skill-swap' : '/login'} replace />}
+            />
+
           </Routes>
         </main>
       </div>
