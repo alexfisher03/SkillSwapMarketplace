@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { pool } = require('../db/pool');
+const { authenticate } = require('../middleware/auth');
 
 // GET /api/users/:userId - Fetch a user's profile
 router.get('/:userId', async (req, res) => {
@@ -25,10 +26,16 @@ router.get('/:userId', async (req, res) => {
 });
 
 // PATCH /api/users/:userId/skills - Update user skills
-router.patch('/:userId/skills', async (req, res) => {
+router.patch('/:userId/skills', authenticate, async (req, res) => {
   const { userId } = req.params;
   const { skills } = req.body; 
 
+  // SECURITY CHECK: Ensure the token ID matches the URL ID
+  // (req.user is provided by your authenticate middleware)
+  if (req.user.user_id !== Number(userId)) {
+    return res.status(403).json({ error: 'Unauthorized: You can only edit your own profile' });
+  }
+  
   try {
     // CHANGED: Update WHERE user_id = $2 and return the proper columns
     const result = await pool.query(

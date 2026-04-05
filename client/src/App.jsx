@@ -106,7 +106,7 @@ export default function App() {
               path="/user/:userId"
               element={(
                 <ProtectedRoute currentUser={currentUser}>
-                  <UserProfile />
+                  <UserProfile currentUser={currentUser} />
                 </ProtectedRoute>
               )}
             />
