@@ -36,7 +36,14 @@ export default function Navbar({ currentUser, onLogout, darkMode, onToggleDark }
               >
                 Dashboard
               </NavLink>
-              <span className="text-white-50 small">{currentUser.display_name}</span>
+              <NavLink 
+                to={`/user/${currentUser.user_id}`} 
+                className={({ isActive }) => 
+                  `text-white text-decoration-none ${isActive ? 'fw-bold' : ''}`
+                }
+              >
+                {currentUser.display_name}
+              </NavLink>
               <button
                 type="button"
                 className="btn btn-sm btn-light"

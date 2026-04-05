@@ -16,6 +16,7 @@ const healthRoutes = require('./routes/health');
 const authRoutes = require('./routes/auth');
 const listingsRoutes = require('./routes/listings');
 const ufRoutes = require('./routes/uf');
+const userRoutes = require('./routes/users');
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api', listingsRoutes);
 app.use('/api', ufRoutes);
+app.use('/api/users', userRoutes);
 
 const port = Number(process.env.PORT) || 3001;
 
