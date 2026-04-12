@@ -11,7 +11,7 @@ export default function DashboardPage({ currentUser, defaultTerm }) {
 
   useEffect(() => {
     if (!currentUser?.user_id) return;
-    getListings({ user_id: currentUser.user_id })
+    getListings({ user_id: currentUser.user_id }, currentUser?.token)
       .then(setRows)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, [currentUser]);
@@ -24,7 +24,7 @@ export default function DashboardPage({ currentUser, defaultTerm }) {
   const closeEditModal = () => setEditingListing(null);
   const handleUpdated = () => {
     setEditingListing(null);
-    getListings({ user_id: currentUser.user_id }).then(setRows);
+    getListings({ user_id: currentUser.user_id }, currentUser?.token).then(setRows);
   };
 
   return (
