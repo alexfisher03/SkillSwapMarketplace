@@ -23,10 +23,10 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="row justify-content-center mt-4">
       <div className="col-12 col-md-6 col-lg-5">
-        <h1 className="h4 mb-3">Login</h1>
+        <h1 className="h4 mb-3 auth-title">Login</h1>
         <AuthForm mode="login" onSubmit={submit} submitting={submitting} error={error} />
-        <p className="small mt-3 mb-0">
-          Need an account? <Link to="/signup">Sign up</Link>
+        <p className="small mt-3 mb-0 auth-switch-text">
+          Need an account? <Link className="auth-switch-link" to="/signup">Sign up</Link>
         </p>
       </div>
     </div>

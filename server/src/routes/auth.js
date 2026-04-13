@@ -70,13 +70,13 @@ router.post('/login', async (req, res) => {
       [email]
     );
     if (result.rowCount === 0) {
-      res.status(401).json({ error: 'invalid_credentials' });
+      res.status(401).json({ error: 'Incorrect Username or Password' });
       return;
     }
     const user = result.rows[0];
     const ok = await bcrypt.compare(password, user.password_hash);
     if (!ok) {
-      res.status(401).json({ error: 'invalid_credentials' });
+      res.status(401).json({ error: 'Incorrect Username or Password' });
       return;
     }
     const userPayload = {

@@ -23,10 +23,10 @@ export default function SignupPage({ onSignup }) {
   return (
     <div className="row justify-content-center mt-4">
       <div className="col-12 col-md-6 col-lg-5">
-        <h1 className="h4 mb-3">Sign up</h1>
+        <h1 className="h4 mb-3 auth-title">Sign up</h1>
         <AuthForm mode="signup" onSubmit={submit} submitting={submitting} error={error} />
-        <p className="small mt-3 mb-0">
-          Already have an account? <Link to="/login">Login</Link>
+        <p className="small mt-3 mb-0 auth-switch-text">
+          Already have an account? <Link className="auth-switch-link" to="/login">Login</Link>
         </p>
       </div>
     </div>
