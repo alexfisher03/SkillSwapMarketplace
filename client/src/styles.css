@@ -220,6 +220,22 @@ body {
   color: var(--text-muted) !important;
 }
 
+[data-theme="dark"] .auth-title {
+  color: #e2e8f0;
+}
+
+[data-theme="dark"] .auth-switch-text {
+  color: var(--text-muted);
+}
+
+[data-theme="dark"] .auth-switch-link {
+  color: #9ec5ff;
+}
+
+[data-theme="dark"] .auth-switch-link:hover {
+  color: #c2dcff;
+}
+
 [data-theme="dark"] h2 {
   color: #e2e8f0;
 }

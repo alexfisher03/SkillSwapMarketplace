@@ -123,7 +123,6 @@ export default function ListingForm({ currentUser, defaultTerm, onCreated, onUpd
 
   return (
     <section className="mb-5">
-      <h2 className="h5 mb-3">{isEdit ? 'Edit listing' : 'Create listing'}</h2>
       <form className="card shadow-sm" onSubmit={submit}>
         <div className="card-body">
           <div className="row g-3">
