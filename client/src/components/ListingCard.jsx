@@ -1,18 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { setListingStatus, expressInterest, removeInterest } from '../api/listings.js';
 import { Link } from 'react-router-dom';
 
 export default function ListingCard({ listing, currentUser, onStatusChange, onEdit, showInterestCount }) {
-  const [revealedEmail, setRevealedEmail] = useState(null);
-  const [interested, setInterested] = useState(false);
+  const [revealedEmail, setRevealedEmail] = useState(listing.viewer_contact_email || null);
+  const [interested, setInterested] = useState(Boolean(listing.viewer_has_interest));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showInterestedUsers, setShowInterestedUsers] = useState(false);
 
   const isOwner = currentUser?.user_id === listing.user_id;
   const isClosed = listing.status === 'closed';
   const createdAt = listing.created_at ? new Date(listing.created_at).toLocaleDateString() : null;
   const typeClass = `listing-badge-${listing.listing_type || 'offer'}`;
   const categoryClass = listing.category === 'course' ? 'badge-category-course' : 'badge-category-misc';
+  const interestedUsers = Array.isArray(listing.interested_users) ? listing.interested_users : [];
+
+  useEffect(() => {
+    setInterested(Boolean(listing.viewer_has_interest));
+  }, [listing.viewer_has_interest]);
+
+  useEffect(() => {
+    setRevealedEmail(listing.viewer_contact_email || null);
+  }, [listing.viewer_contact_email]);
 
   const handleToggleStatus = async () => {
     setLoading(true);
@@ -99,6 +109,29 @@ export default function ListingCard({ listing, currentUser, onStatusChange, onEd
           <p className="small text-muted mb-0">
             {listing.interest_count ?? 0} {Number(listing.interest_count) === 1 ? 'person' : 'people'} interested
           </p>
+        )}
+
+        {showInterestCount && isOwner && Number(listing.interest_count ?? 0) > 0 && (
+          <div className="border rounded-3 p-2 bg-light-subtle">
+            <button
+              type="button"
+              className="btn btn-sm btn-link p-0 text-decoration-none"
+              onClick={() => setShowInterestedUsers((prev) => !prev)}
+            >
+              {showInterestedUsers ? 'Hide interested users' : 'Show interested users'}
+            </button>
+            {showInterestedUsers && (
+              <ul className="list-unstyled mt-2 mb-0 small">
+                {interestedUsers.map((user) => (
+                  <li key={user.user_id} className="mb-1">
+                    <Link to={`/user/${user.user_id}`}>{user.display_name}</Link>
+                    {' - '}
+                    <a href={`mailto:${user.email}`}>{user.email}</a>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         )}
 
         <div className="d-flex justify-content-between align-items-center small text-muted">

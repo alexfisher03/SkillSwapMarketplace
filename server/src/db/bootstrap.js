@@ -1,6 +1,26 @@
 const { pool } = require('./pool');
 
 async function ensureSchema() {
+  // Backfill older databases so profile and auth routes can rely on these columns.
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS display_name VARCHAR(255),
+    ADD COLUMN IF NOT EXISTS self_proclaimed_skills TEXT[] DEFAULT '{}'
+  `);
+
+  await pool.query(`
+    UPDATE users
+    SET display_name = COALESCE(NULLIF(display_name, ''), split_part(email, '@', 1))
+    WHERE display_name IS NULL OR display_name = ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE users
+    ALTER COLUMN display_name SET NOT NULL,
+    ALTER COLUMN self_proclaimed_skills SET DEFAULT '{}',
+    ALTER COLUMN self_proclaimed_skills SET NOT NULL
+  `);
+
   await pool.query(`
     ALTER TABLE listings
     ADD COLUMN IF NOT EXISTS term_code VARCHAR(32),

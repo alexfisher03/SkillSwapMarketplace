@@ -1,6 +1,7 @@
 const express = require('express');
 const { pool } = require('../db/pool');
 const { authenticate } = require('../middleware/auth');
+const { verifyToken } = require('../utils/jwt');
 
 const router = express.Router();
 
@@ -8,6 +9,21 @@ router.get('/listings', async (req, res) => {
   const requestedUserId = Number(req.query.user_id);
   const hasUserFilter = req.query.user_id !== undefined && !Number.isNaN(requestedUserId);
   const boundUserId = hasUserFilter ? requestedUserId : null;
+  const authHeader = req.headers.authorization;
+  let viewerUserId = null;
+
+  if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.slice(7);
+    try {
+      const payload = verifyToken(token);
+      const parsedId = Number(payload && payload.user_id);
+      if (!Number.isNaN(parsedId)) {
+        viewerUserId = parsedId;
+      }
+    } catch (_err) {
+      viewerUserId = null;
+    }
+  }
 
   try {
     const result = await pool.query(
@@ -29,16 +45,30 @@ router.get('/listings', async (req, res) => {
         l.created_at,
         l.status,
         COUNT(li.interest_id) AS interest_count,
+        COALESCE(BOOL_OR(li.user_id = $3), FALSE) AS viewer_has_interest,
+        MAX(CASE WHEN li.user_id = $3 THEN u.email ELSE NULL END) AS viewer_contact_email,
+        CASE
+          WHEN $3 IS NOT NULL AND l.user_id = $3 THEN COALESCE(
+            JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+              'user_id', iu.user_id,
+              'display_name', iu.display_name,
+              'email', iu.email
+            )) FILTER (WHERE iu.user_id IS NOT NULL),
+            '[]'::jsonb
+          )
+          ELSE '[]'::jsonb
+        END AS interested_users,
         u.display_name AS creator_display_name,
         cc.course_title AS uf_course_title
       FROM listings l
       INNER JOIN users u ON u.user_id = l.user_id
       LEFT JOIN course_cache cc ON cc.cache_id = l.course_cache_id
       LEFT JOIN listing_interests li ON li.listing_id = l.listing_id
+      LEFT JOIN users iu ON iu.user_id = li.user_id
       WHERE ($1::boolean = false OR l.user_id = $2)
       GROUP BY l.listing_id, u.display_name, cc.course_title
       ORDER BY l.created_at DESC`,
-      [hasUserFilter, boundUserId]
+      [hasUserFilter, boundUserId, viewerUserId]
     );
     res.json(result.rows);
   } catch (err) {

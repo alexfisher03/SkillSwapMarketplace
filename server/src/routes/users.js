@@ -30,6 +30,10 @@ router.patch('/:userId/skills', authenticate, async (req, res) => {
   const { userId } = req.params;
   const { skills } = req.body; 
 
+  if (!Array.isArray(skills) || skills.some((skill) => typeof skill !== 'string')) {
+    return res.status(400).json({ error: 'invalid_skills_payload' });
+  }
+
   // SECURITY CHECK: Ensure the token ID matches the URL ID
   // (req.user is provided by your authenticate middleware)
   if (req.user.user_id !== Number(userId)) {

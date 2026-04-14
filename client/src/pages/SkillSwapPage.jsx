@@ -18,10 +18,10 @@ export default function SkillSwapPage({ currentUser, defaultTerm }) {
   const load = useCallback(() => {
     setError('');
     setRows(null);
-    getListings()
+    getListings({}, currentUser?.token)
       .then(setRows)
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
-  }, []);
+  }, [currentUser?.token]);
 
   useEffect(() => {
     load();
