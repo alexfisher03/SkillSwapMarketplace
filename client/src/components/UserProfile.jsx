@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { apiUrl } from '../api/base.js';
+import { requestJson } from '../api/http.js';
 
 export default function UserProfile({ currentUser }) {
   const { userId } = useParams();
@@ -18,8 +20,7 @@ export default function UserProfile({ currentUser }) {
   ];
 
   useEffect(() => {
-    fetch(`/api/users/${userId}`)
-      .then(res => res.json())
+    requestJson(apiUrl(`/api/users/${userId}`))
       .then(data => {
         setProfile(data);
         setLoading(false);
@@ -45,24 +46,18 @@ export default function UserProfile({ currentUser }) {
     const updatedSkills = [...currentSkills, newSkill.trim()];
 
     try {
-      const response = await fetch(`/api/users/${userId}/skills`, {
+      const data = await requestJson(apiUrl(`/api/users/${userId}/skills`), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentUser?.token}`
-         },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentUser?.token}`
+        },
         body: JSON.stringify({ skills: updatedSkills })
       });
-
-      if (response.ok) {
-        setProfile({ ...profile, self_proclaimed_skills: updatedSkills });
-        setNewSkill('');
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to save: ${errorData.error || 'Unknown server error'}`);
-        console.error("Backend rejected the request:", errorData);
-      }
+      setProfile(data);
+      setNewSkill('');
     } catch (error) {
-      alert("Network error: Could not reach the server.");
+      alert(error instanceof Error ? error.message : 'Could not save skill.');
       console.error("Error saving skill:", error);
     }
   };
@@ -71,22 +66,17 @@ export default function UserProfile({ currentUser }) {
     const updatedSkills = profile.self_proclaimed_skills.filter(s => s !== skillToRemove);
     
     try {
-      const response = await fetch(`/api/users/${userId}/skills`, {
+      const data = await requestJson(apiUrl(`/api/users/${userId}/skills`), {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json',
-            'Authorization': `Bearer ${currentUser?.token}`
-         },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${currentUser?.token}`
+        },
         body: JSON.stringify({ skills: updatedSkills })
       });
-
-      if (response.ok) {
-        setProfile({ ...profile, self_proclaimed_skills: updatedSkills });
-      } else {
-        const errorData = await response.json();
-        alert(`Failed to remove: ${errorData.error || 'Unknown server error'}`);
-      }
+      setProfile(data);
     } catch (error) {
-      alert("Network error: Could not reach the server.");
+      alert(error instanceof Error ? error.message : 'Could not remove skill.');
       console.error("Error removing skill:", error);
     }
   };
