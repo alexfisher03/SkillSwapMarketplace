@@ -22,6 +22,7 @@ services:
     environment:
       DATABASE_URL: postgresql://skillswap:skillswap@postgres:5432/skillswap
       PORT: "3001"
+      JWT_SECRET: ${JWT_SECRET}
       UF_DEFAULT_TERM: "2261"
       UF_SOC_CATEGORY: "CWSP"
     volumes:
