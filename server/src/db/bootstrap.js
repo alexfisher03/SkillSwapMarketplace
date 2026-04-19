@@ -1,7 +1,7 @@
 const { pool } = require('./pool');
 
 async function ensureSchema() {
-  // Backfill older databases so profile and auth routes can rely on these columns.
+  // keep older databases compatible
   await pool.query(`
     ALTER TABLE users
     ADD COLUMN IF NOT EXISTS display_name VARCHAR(255),

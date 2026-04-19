@@ -9,10 +9,8 @@ export default function UserProfile({ currentUser }) {
   const [loading, setLoading] = useState(true);
   const [newSkill, setNewSkill] = useState('');
 
-  // Check if the currently logged-in user is viewing their own profile
   const isOwnProfile = currentUser && currentUser.user_id === Number(userId);
 
-  // Suggested skills for the combobox dropdown
   const suggestedSkills = [
     "JavaScript", "Python", "React", "Calculus", 
     "Resume Review", "Graphic Design", "Data Structures",
@@ -37,7 +35,6 @@ export default function UserProfile({ currentUser }) {
 
     const currentSkills = profile.self_proclaimed_skills || [];
     
-    // Prevent duplicates
     if (currentSkills.includes(newSkill.trim())) {
       setNewSkill('');
       return; 
@@ -99,7 +96,6 @@ export default function UserProfile({ currentUser }) {
               profile.self_proclaimed_skills.map((skill, index) => (
                 <span key={index} className="badge bg-primary fs-6 d-flex align-items-center gap-2">
                   {skill}
-                  {/* Only show the 'X' button if it's the user's own profile */}
                   {isOwnProfile && (
                     <button 
                       type="button" 
@@ -116,7 +112,6 @@ export default function UserProfile({ currentUser }) {
             )}
           </div>
 
-          {/* Only show the 'Add Skill' form if it's the user's own profile */}
           {isOwnProfile && (
             <form onSubmit={handleAddSkill} className="d-flex gap-2" style={{ maxWidth: '400px' }}>
               <input 
