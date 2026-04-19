@@ -115,10 +115,6 @@ export default function App() {
               path="*"
               element={<Navigate to={currentUser ? '/skill-swap' : '/login'} replace />}
             />
-            <Route
-              path="*"
-              element={<Navigate to={currentUser ? '/skill-swap' : '/login'} replace />}
-            />
 
           </Routes>
         </main>
